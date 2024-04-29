@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 from shiny import reactive
 from shiny.express import render, ui
 
+from shinywidgets import render_plotly
+import plotly.express as px
+
 
 @reactive.calc
 def dat():
@@ -18,23 +21,13 @@ def total_orders():
     top_5_products = df.groupby("Product")["Quantity Ordered"].sum().nlargest(5)
     top_5_products.plot(kind="bar")
 
-@render.plot
+@render_plotly
 def total_orders2():
-    # Assuming top_5_products contains the sum of 'Quantity Ordered' for the top 5 products
     df = dat()
-    top_5_products = df.groupby("Product")["Quantity Ordered"].sum().nlargest(5)
+    top_5_products = df.groupby("Product")["Quantity Ordered"].sum().largest(5)
 
-    # Create the bar plot
-    ax = top_5_products.plot(kind="bar", color='skyblue', figsize=(10, 6))
-
-    # Set x-tick labels with rotation
-    plt.xticks(rotation=45, ha='right')  # Rotates the x-axis labels to 45 degrees and aligns them to the right
-
-    plt.xlabel('Product')  # Label for the x-axis
-    plt.ylabel('Quantity Ordered')  # Label for the y-axis
-    plt.title('Top 5 Products by Quantity Ordered')  # Title of the plot
-    # plt.tight_layout()  # Adjusts subplot params so that the subplot(s) fits in to the figure area.
-    return ax
+    fig = px.bar(top_5_products, x=top_5_products.index, y="Quantity Ordered")
+    return fig
 
 with ui.navset_card_underline():
     with ui.nav_panel("Data frame"):
