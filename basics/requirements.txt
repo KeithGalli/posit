@@ -1,0 +1,6 @@
+pandas
+plotly
+folium
+matplotlib
+shiny
+shinywidgets
