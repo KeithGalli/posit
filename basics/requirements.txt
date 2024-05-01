@@ -5,3 +5,5 @@ matplotlib
 shiny
 shinywidgets
 seaborn
+altair
+anywidget

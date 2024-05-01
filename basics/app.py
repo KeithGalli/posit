@@ -4,10 +4,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+import altair as alt
+
 from shiny import reactive
 from shiny.express import render, ui, input
 
-from shinywidgets import render_plotly, render_widget
+from shinywidgets import render_plotly, render_widget, render_altair
 import plotly.express as px
 
 import folium
@@ -40,7 +42,7 @@ with ui.card(full_screen=True):
                 'New York City (NY)', 'Portland (OR)', 'Austin (TX)','Portland (ME)'],  
             )
 
-        @render_plotly
+        @render_altair
         def sales_over_time():
             df = dat()
             df['date'] = pd.to_datetime(df['order_date'])
@@ -48,12 +50,22 @@ with ui.card(full_screen=True):
             # Define the order of the months to ensure they appear chronologically
             month_order = ["January", "February", "March", "April", "May", "June",
                         "July", "August", "September", "October", "November", "December"]
+            
+            # Creating a month order for sorting in Altair
+            df['month'] = pd.Categorical(df['month'], categories=month_order, ordered=True)
             counts = df.groupby(["month", "city"])['quantity_ordered'].sum().reset_index()
             city_counts = counts[counts['city']==input.select()]
-            fig = px.bar(city_counts, x='month', y='quantity_ordered', title=f'Sales Over Time {input.select()}',
-                         category_orders={"month": month_order})
-            fig.update_layout(showlegend=False)
-            return fig
+            # Create the Altair chart
+            chart = alt.Chart(city_counts).mark_bar().encode(
+                x='month',
+                y='quantity_ordered',
+                tooltip=['city', 'month', 'quantity_ordered']
+            ).properties(
+                title=f'Sales Over Time in {input.select()}'
+            ).configure_axis(
+                labelAngle=0  # Adjust label angle if needed
+            )
+            return chart
 
 with ui.layout_columns(widths=1/2):
 
@@ -136,7 +148,7 @@ with ui.layout_columns(widths=1/2):
             plt.title("Number of Orders by Hour of Day")
             plt.ylabel("Hour of Day")
             plt.xlabel("Order Count")
-                
+            
 with ui.navset_card_underline():
     with ui.nav_panel("Sales Locations"):
         @render.ui
@@ -151,10 +163,10 @@ with ui.navset_card_underline():
             HeatMap(heatmap_data).add_to(map)
 
             return map
-
-with ui.navset_card_underline():
-    with ui.nav_panel("Data frame"):
-        @render.data_frame
-        def frame():
-            # Give dat() to render.DataGrid to customize the grid
-            return dat()
+        
+with ui.card():
+    with ui.accordion(id="acc", open=False):  
+        with ui.accordion_panel("Dataframe"):  
+            @render.data_frame
+            def frame():
+                return dat()
