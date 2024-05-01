@@ -56,6 +56,7 @@ with ui.card(full_screen=True):
             return fig
 
 with ui.layout_columns(widths=1/2):
+
     with ui.navset_card_underline():
         with ui.nav_panel("Top Sellers"):
             @render_plotly
@@ -108,7 +109,7 @@ with ui.layout_columns(widths=1/2):
                 fig.update_traces(marker_color=top_5_products["value"], marker_colorscale='Reds')
                 apply_common_styles(fig)
                 return fig
-    
+        
     with ui.card():
         @render.plot
         def time_heatmap():
@@ -131,7 +132,7 @@ with ui.layout_columns(widths=1/2):
 
             # Step 4: Plot with Seaborn
             plt.figure(figsize=(10, 8))
-            sns.heatmap(heatmap_data, annot=True, fmt="d", cmap="coolwarm", yticklabels=[f"{i}:00" for i in range(24)])
+            sns.heatmap(heatmap_data, annot=True, fmt="d", cmap="coolwarm", cbar=False, xticklabels=[], yticklabels=[f"{i}:00" for i in range(24)])
             plt.title("Number of Orders by Hour of Day")
             plt.ylabel("Hour of Day")
             plt.xlabel("Order Count")
