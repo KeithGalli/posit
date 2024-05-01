@@ -71,12 +71,11 @@ with ui.layout_columns(widths=1/2):
 
     with ui.navset_card_underline():
         with ui.nav_panel("Top Sellers"):
+            ui.input_numeric("items", "Number of Items", 5, min=1, max=10, step=None, width=.5)
             @render_plotly
             def top_sellers():
                 df = dat()
-                top_5_products = df.groupby("product")["quantity_ordered"].sum().nlargest(5).reset_index()
-
-                print(top_5_products.head())
+                top_5_products = df.groupby("product")["quantity_ordered"].sum().nlargest(input.items()).reset_index()
 
                 fig = px.bar(top_5_products, x="product", y="quantity_ordered")
 
@@ -89,7 +88,7 @@ with ui.layout_columns(widths=1/2):
             def top_sellers_value():
                 df = dat()
                 df['value'] = df['quantity_ordered']*df['price_each']
-                top_5_products = df.groupby("product")["value"].sum().nlargest(5).reset_index()
+                top_5_products = df.groupby("product")["value"].sum().nlargest(input.items()).reset_index()
 
                 fig = px.bar(top_5_products, x="product", y="value")
 
@@ -101,7 +100,7 @@ with ui.layout_columns(widths=1/2):
             @render_plotly
             def lowest_sellers():
                 df = dat()
-                top_5_products = df.groupby("product")["quantity_ordered"].sum().nsmallest(5).reset_index().sort_values('quantity_ordered', ascending=False)
+                top_5_products = df.groupby("product")["quantity_ordered"].sum().nsmallest(input.items()).reset_index().sort_values('quantity_ordered', ascending=False)
 
                 fig = px.bar(top_5_products, x="product", y="quantity_ordered")
 
@@ -114,7 +113,7 @@ with ui.layout_columns(widths=1/2):
             def lowest_sellers_value():
                 df = dat()
                 df['value'] = df['quantity_ordered']*df['price_each']
-                top_5_products = df.groupby("product")["value"].sum().nsmallest(5).reset_index().sort_values('value', ascending=False)
+                top_5_products = df.groupby("product")["value"].sum().nsmallest(input.items()).reset_index().sort_values('value', ascending=False)
 
                 fig = px.bar(top_5_products, x="product", y="value")
 
@@ -164,9 +163,8 @@ with ui.navset_card_underline():
 
             return map
         
-with ui.card():
-    with ui.accordion(id="acc", open=False):  
-        with ui.accordion_panel("Dataframe"):  
-            @render.data_frame
-            def frame():
-                return dat()
+with ui.navset_card_underline():
+    with ui.nav_panel("Dataframe Sample"):
+        @render.data_frame
+        def frame():
+            return dat().head(1000)
