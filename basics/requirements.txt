@@ -4,3 +4,4 @@ folium
 matplotlib
 shiny
 shinywidgets
+seaborn
