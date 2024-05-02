@@ -30,7 +30,7 @@ ui.input_select(
     'New York City (NY)', 'Portland (OR)', 'Austin (TX)','Portland (ME)'],  
 )
 
-@render_altair
+@render_plotly
 def sales_over_time():
     df = dat()
     df['date'] = pd.to_datetime(df['order_date'])
@@ -38,24 +38,14 @@ def sales_over_time():
     # Define the order of the months to ensure they appear chronologically
     month_order = ["January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"]
-    
-    # Creating a month order for sorting in Altair
-    df['month'] = pd.Categorical(df['month'], categories=month_order, ordered=True)
     counts = df.groupby(["month", "city"])['quantity_ordered'].sum().reset_index()
     city_counts = counts[counts['city']==input.select()]
-    # Create the Altair chart
-    chart = alt.Chart(city_counts).mark_bar().encode(
-        x='month',
-        y='quantity_ordered',
-        tooltip=['city', 'month', 'quantity_ordered']
-    ).properties(
-        title=f'Sales Over Time in {input.select()}'
-    ).configure_axis(
-        labelAngle=0  # Adjust label angle if needed
-    )
-    return chart
+    fig = px.bar(city_counts, x='month', y='quantity_ordered', title=f'Sales Over Time {input.select()}',
+                    category_orders={"month": month_order})
+    fig.update_layout(showlegend=False)
+    return fig
 
-ui.input_numeric("item_count", "Number of items to show", 1, min=1, max=20)  
+ui.input_numeric("item_count", "Number of items to show", 5, min=1, max=20)  
 
 @render_plotly
 def top_sellers():
@@ -65,46 +55,8 @@ def top_sellers():
 
     return fig
 
-@render.plot
-def time_heatmap():
-    # Step 1: Extract the hour from the order_date
-    df = dat()
-    df['order_date'] = pd.to_datetime(df['order_date'])
-    df['hour'] = df['order_date'].dt.hour
-
-    # Step 2: Aggregate data by hour
-    hourly_counts = df['hour'].value_counts().sort_index()
-
-    # Step 3: Prepare data for heatmap (optional: create a dummy dimension if needed)
-    # For simplicity, let's assume you want to view by hours (24 hrs) and just map counts directly.
-    heatmap_data = np.zeros((24, 1))  # 24 hours, 1 dummy column
-    for hour in hourly_counts.index:
-        heatmap_data[hour, 0] = hourly_counts[hour]
-
-    # Convert heatmap data to integer if needed
-    heatmap_data = heatmap_data.astype(int)
-
-    # Step 4: Plot with Seaborn
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(heatmap_data, annot=True, fmt="d", cmap="coolwarm", cbar=False, xticklabels=[], yticklabels=[f"{i}:00" for i in range(24)])
-    plt.title("Number of Orders by Hour of Day")
-    plt.ylabel("Hour of Day")
-    plt.xlabel("Order Count")
-
-@render.ui
-def heatmap():
-    # Create a map centered roughly in the middle of the US
-    df = dat()
-    map = folium.Map(location=[37.0902, -95.7129], zoom_start=4)
-
-    # Prepare the data for the HeatMap; each entry in heatmap_data is (lat, lon, weight)
-    heatmap_data = [(lat, long, qty) for lat, long, qty in zip(df['lat'],df['long'], df['quantity_ordered'])]
-    # Add HeatMap to the map
-    HeatMap(heatmap_data).add_to(map)
-
-    return map
-        
-
-@render.data_frame
-def frame():
-    return dat().head(1000)
+with ui.card():
+    ui.card_header("Dataframe Sample")
+    @render.data_frame
+    def frame():
+        return dat().head(1000)
