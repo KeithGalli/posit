@@ -17,6 +17,8 @@ from folium.plugins import HeatMap
 
 import seaborn as sns
 
+ui.page_opts(class_="py-3")
+
 def apply_common_styles(fig):
     # Set the background to transparent
     fig.update_layout({
