@@ -55,7 +55,7 @@ with ui.card(full_screen=True):
             
             # Creating a month order for sorting in Altair
             df['month'] = pd.Categorical(df['month'], categories=month_order, ordered=True)
-            counts = df.groupby(["month", "city"])['quantity_ordered'].sum().reset_index()
+            counts = df.groupby(["month", "city"], observed=True)['quantity_ordered'].sum().reset_index()
             city_counts = counts[counts['city']==input.select()]
             # Create the Altair chart
             chart = alt.Chart(city_counts).mark_bar().encode(
