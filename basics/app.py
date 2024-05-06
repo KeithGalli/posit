@@ -30,7 +30,7 @@ def apply_common_styles(fig):
 
 @reactive.calc
 def dat():
-    infile = Path(__file__).parent / "data/sales_with_coords.csv"
+    infile = Path(__file__).parent / "data/sales.csv"
     return pd.read_csv(infile)
 
 with ui.card(full_screen=True):  
