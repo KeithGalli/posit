@@ -1,56 +1,116 @@
 from pathlib import Path
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-
 import altair as alt
-
 from shiny import reactive
 from shiny.express import render, ui, input
-
 from shinywidgets import render_plotly, render_widget, render_altair
 import plotly.express as px
-
 import folium
 from folium.plugins import HeatMap
-
 import seaborn as sns
 
-ui.page_opts(title="Sales Dashboard - Part 5 of 5")
+with ui.div(class_="yoyo"):
+    with ui.div(class_="inneryo imageyo"):
+        @render.image
+        def image():
+            dir = Path(__file__).resolve().parent
+            img = {"src": str(dir / "assets/shiny.png"), "height": 100}
+            return img
+    with ui.div(class_="inneryo"):
+        ui.h2("Sales Dashboard - Part 5 of 5")
+
+ui.page_opts()
 
 ui.tags.style("""
-        h2 {
-            background-color: lightblue;
-            color: white;
-            padding: 10px;
-            text-align: center;
-            border-radius: 5px; /* Optional: Adds rounded corners */
-        }
-        
-        .container {
-            background-color: lightblue;
-            color: white;
-            padding: 10px;
-            text-align: center;
-            border-radius: 5px; /* Optional: Adds rounded corners */}""")
+    h2 {
+        background-color: #5DADE2;
+        color: white;
+        padding: 10px;
+        text-align: center;
+        border-radius: 5px; /* Optional: Adds rounded corners */
+    }
+    
+    .container {
+        background-color: #5DADE2;
+        padding: 10px;
+        border-radius: 5px; /* Optional: Adds rounded corners */}
+          
+    body {
+        background-color: #5DADE2;
+        font-family: 'Arial' !important;
+        font-size: 100;
+    }
+              
+    .inneryo {
+        display: inline-block;
+        height: 80%; !important
+    }
+              
+    .yoyo {
+        text-align: center;
+        height: 100px;
+    }
+""")
 
 def apply_common_styles(fig):
-    # Set the background to transparent
+    # Set the background to transparent and set common font and colors
     fig.update_layout(
         {
             "plot_bgcolor": "rgba(0,0,0,0)",  # Transparent plot background
             "paper_bgcolor": "rgba(0,0,0,0)",  # Transparent figure background
-            "font": {"family": "Arial, sans-serif", "size": 12, "color": "darkblue"},
+            "font": {"family": "Arial, sans-serif", "size": 14, "color": "darkblue"},
+            "colorway": px.colors.sequential.Blues, # Use a common color palette
+            "yaxis_title": "Quantity Ordered",
+            "xaxis_title": "Month"
         }
     )
     return fig
-
 
 @reactive.calc
 def dat():
     infile = Path(__file__).parent / "data/sales.csv"
     return pd.read_csv(infile)
+
+# Set common font and color palette for Altair
+_ = alt.themes.enable('default')
+_ = alt.renderers.set_embed_options(scaleFactor=2)
+_ = alt.renderers.set_embed_options(theme='dark')
+
+_ = alt.data_transformers.disable_max_rows()
+_ = alt.data_transformers.enable('default', max_rows=10000)
+
+_ = alt.themes.register(
+    'custom_theme',
+    lambda: {
+        'config': {
+            'title': {
+                'fontSize': 18,
+                'font': 'Arial',
+                'color': 'darkblue'
+            },
+            'axis': {
+                'labelFontSize': 12,
+                'titleFontSize': 14,
+                'labelFont': 'Arial',
+                'titleFont': 'Arial',
+                'labelColor': 'darkblue',
+                'titleColor': 'darkblue',
+                'grid': False,       # Remove grid lines
+                'tickSize': 0,       # Remove tick lines
+                'titleFontWeight': 'normal',  # Make axis titles non-bold
+            },
+            'view': {
+                'strokeWidth': 0,    # Remove the light gray background
+            },
+            'background': '#FFFFFF',
+            'font': 'Arial'
+        }
+    }
+)
+
+_ = alt.themes.enable('custom_theme')
 
 
 with ui.card(full_screen=True):
@@ -108,10 +168,10 @@ with ui.card(full_screen=True):
             # Create the Altair chart
             chart = (
                 alt.Chart(city_counts)
-                .mark_bar()
+                .mark_bar(color='#3585BF')  # Apply a consistent color
                 .encode(
-                    x="month",
-                    y="quantity_ordered",
+                    x=alt.X("month", title="Month"),
+                    y=alt.Y("quantity_ordered", title="Quantity Ordered"),
                     tooltip=["city", "month", "quantity_ordered"],
                 )
                 .properties(title=f"Sales Over Time in {input.select()}")
@@ -147,7 +207,6 @@ with ui.layout_columns(widths=1 / 2):
                 return fig
 
         with ui.nav_panel("Top Sellers Value ($)"):
-
             @render_plotly
             def top_sellers_value():
                 df = dat()
@@ -164,11 +223,13 @@ with ui.layout_columns(widths=1 / 2):
                 fig.update_traces(
                     marker_color=top_5_products["value"], marker_colorscale="Blues"
                 )
+                fig.update_layout(
+                    yaxis_title="Quantity Ordered"  # Update the y-axis title
+                )
                 apply_common_styles(fig)
                 return fig
 
         with ui.nav_panel("Lowest Sellers"):
-
             @render_plotly
             def lowest_sellers():
                 df = dat()
@@ -190,7 +251,6 @@ with ui.layout_columns(widths=1 / 2):
                 return fig
 
         with ui.nav_panel("Lowest Sellers Value ($)"):
-
             @render_plotly
             def lowest_sellers_value():
                 df = dat()
@@ -212,33 +272,26 @@ with ui.layout_columns(widths=1 / 2):
                 return fig
 
     with ui.card():
-
         @render.plot
         def time_heatmap():
-            # Step 1: Extract the hour from the order_date
             df = dat()
             df["order_date"] = pd.to_datetime(df["order_date"])
             df["hour"] = df["order_date"].dt.hour
 
-            # Step 2: Aggregate data by hour
             hourly_counts = df["hour"].value_counts().sort_index()
 
-            # Step 3: Prepare data for heatmap (optional: create a dummy dimension if needed)
-            # For simplicity, let's assume you want to view by hours (24 hrs) and just map counts directly.
-            heatmap_data = np.zeros((24, 1))  # 24 hours, 1 dummy column
+            heatmap_data = np.zeros((24, 1))
             for hour in hourly_counts.index:
                 heatmap_data[hour, 0] = hourly_counts[hour]
 
-            # Convert heatmap data to integer if needed
             heatmap_data = heatmap_data.astype(int)
 
-            # Step 4: Plot with Seaborn
             plt.figure(figsize=(10, 8))
             sns.heatmap(
                 heatmap_data,
                 annot=True,
                 fmt="d",
-                cmap="coolwarm",
+                cmap="Blues",  # Use a common color palette
                 cbar=False,
                 xticklabels=[],
                 yticklabels=[f"{i}:00" for i in range(24)],
@@ -246,31 +299,34 @@ with ui.layout_columns(widths=1 / 2):
             plt.title("Number of Orders by Hour of Day")
             plt.ylabel("Hour of Day")
             plt.xlabel("Order Count")
-
+            
 
 with ui.navset_card_underline():
     with ui.nav_panel("Sales Locations"):
-
         @render.ui
         def heatmap():
-            # Create a map centered roughly in the middle of the US
             df = dat()
             map = folium.Map(location=[37.0902, -95.7129], zoom_start=4)
 
-            # Prepare the data for the HeatMap; each entry in heatmap_data is (lat, lon, weight)
             heatmap_data = [
                 (lat, long, qty)
                 for lat, long, qty in zip(df["lat"], df["long"], df["quantity_ordered"])
             ]
-            # Add HeatMap to the map
-            HeatMap(heatmap_data).add_to(map)
+
+            custom_gradient = {
+                0.0: '#E3F2FD',  # Light blue
+                0.2: '#BBDEFB',
+                0.4: '#64B5F6',
+                0.6: '#42A5F5',
+                0.8: '#2196F3',
+                1.0: '#1976D2'   # Dark blue
+            }
+            HeatMap(heatmap_data, gradient=custom_gradient).add_to(map)
 
             return map
 
-
 with ui.navset_card_underline():
     with ui.nav_panel("Dataframe Sample"):
-
         @render.data_frame
         def frame():
             return dat().head(1000)
