@@ -17,8 +17,23 @@ from folium.plugins import HeatMap
 
 import seaborn as sns
 
-ui.page_opts(class_="py-3")
+ui.page_opts(title="Sales Dashboard - Part 5 of 5")
 
+ui.tags.style("""
+        h2 {
+            background-color: lightblue;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px; /* Optional: Adds rounded corners */
+        }
+        
+        .container {
+            background-color: lightblue;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px; /* Optional: Adds rounded corners */}""")
 
 def apply_common_styles(fig):
     # Set the background to transparent
