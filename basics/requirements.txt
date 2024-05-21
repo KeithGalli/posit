@@ -1,7 +1,10 @@
 pandas
 plotly
+faicons
 folium
 matplotlib
+numpy
+pytz
 shiny
 shinywidgets
 seaborn
