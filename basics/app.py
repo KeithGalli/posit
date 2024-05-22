@@ -11,6 +11,8 @@ import folium
 from folium.plugins import HeatMap
 import seaborn as sns
 
+ui.page_opts(window_title="Shiny Sales Dashboard")
+
 # Header Section with Logo and Title
 with ui.div(class_="header-container"):
     with ui.div(class_="logo-container"):
