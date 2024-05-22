@@ -305,6 +305,7 @@ with ui.layout_columns(widths=1 / 2):
                     xticklabels=[],
                     yticklabels=[f"{i}:00" for i in range(24)],
                 )
+                plt.yticks(color='darkblue')
                 plt.ylabel("Hour of Day", fontname="Arial", color="darkblue", fontsize=12)
                 plt.xlabel("Order Count", fontname="Arial", color="darkblue", fontsize=12)
             
