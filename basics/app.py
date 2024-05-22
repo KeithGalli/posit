@@ -11,17 +11,15 @@ import folium
 from folium.plugins import HeatMap
 import seaborn as sns
 
-with ui.div(class_="yoyo"):
-    with ui.div(class_="inneryo imageyo"):
+with ui.div(class_="header-container"):
+    with ui.div(class_="logo-container"):
         @render.image
         def image():
             dir = Path(__file__).resolve().parent
-            img = {"src": str(dir / "assets/shiny.png"), "height": 100}
+            img = {"src": str(dir / "assets/shiny.png")}
             return img
-    with ui.div(class_="inneryo"):
+    with ui.div(class_="title-container"):
         ui.h2("Sales Dashboard - Part 5 of 5")
-
-ui.page_opts()
 
 ui.tags.style("""
     h2 {
@@ -30,27 +28,32 @@ ui.tags.style("""
         padding: 10px;
         text-align: center;
         border-radius: 5px; /* Optional: Adds rounded corners */
+        margin: 0; /* Remove default margin */
+        display: inline-block;
     }
     
-    .container {
-        background-color: #5DADE2;
-        padding: 10px;
-        border-radius: 5px; /* Optional: Adds rounded corners */}
+    .header-container {
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px; /* Add padding around the container */
+        background-color: #5DADE2; /* Match the background color */
+        border-radius: 5px; /* Optional: Adds rounded corners */
+        margin: 10px;
+    }
+              
+    .logo-container {
+        height: 100%;
+    }
+
+    .logo-container img {
+        height: 40px; /* Set the image height */
+        margin-right: 5px; /* Space between image and text */
+    }
           
     body {
         background-color: #5DADE2;
-        font-family: 'Arial' !important;
-        font-size: 100;
-    }
-              
-    .inneryo {
-        display: inline-block;
-        height: 80%; !important
-    }
-              
-    .yoyo {
-        text-align: center;
-        height: 100px;
     }
 """)
 
@@ -112,9 +115,8 @@ _ = alt.themes.register(
 
 _ = alt.themes.enable('custom_theme')
 
-
 with ui.card(full_screen=True):
-    ui.card_header("Sales by City in 2023")
+    ui.card_header(f"Sales by City in 2023")
     with ui.layout_sidebar():
         with ui.sidebar(open="open", bg="#f8f8f8"):
             ui.input_select(
@@ -174,19 +176,16 @@ with ui.card(full_screen=True):
                     y=alt.Y("quantity_ordered", title="Quantity Ordered"),
                     tooltip=["city", "month", "quantity_ordered"],
                 )
-                .properties(title=f"Sales Over Time in {input.select()}")
                 .configure_axis(labelAngle=0)  # Adjust label angle if needed
             )
             return chart
 
 
 with ui.layout_columns(widths=1 / 2):
-    with ui.navset_card_underline():
+    with ui.navset_card_underline(footer=ui.input_numeric("items", "Number of Items", 5, min=1, max=10, step=None, width=0.5)):
         with ui.nav_panel("Top Sellers"):
-            ui.input_numeric(
-                "items", "Number of Items", 5, min=1, max=10, step=None, width=0.5
-            )
 
+             
             @render_plotly
             def top_sellers():
                 df = dat()
@@ -270,35 +269,36 @@ with ui.layout_columns(widths=1 / 2):
                 )
                 apply_common_styles(fig)
                 return fig
+            
 
-    with ui.card():
-        @render.plot
-        def time_heatmap():
-            df = dat()
-            df["order_date"] = pd.to_datetime(df["order_date"])
-            df["hour"] = df["order_date"].dt.hour
+    with ui.navset_card_underline():
+        with ui.nav_panel("Number of Orders by Hour of Day"):
+            @render.plot
+            def time_heatmap():
+                df = dat()
+                df["order_date"] = pd.to_datetime(df["order_date"])
+                df["hour"] = df["order_date"].dt.hour
 
-            hourly_counts = df["hour"].value_counts().sort_index()
+                hourly_counts = df["hour"].value_counts().sort_index()
 
-            heatmap_data = np.zeros((24, 1))
-            for hour in hourly_counts.index:
-                heatmap_data[hour, 0] = hourly_counts[hour]
+                heatmap_data = np.zeros((24, 1))
+                for hour in hourly_counts.index:
+                    heatmap_data[hour, 0] = hourly_counts[hour]
 
-            heatmap_data = heatmap_data.astype(int)
+                heatmap_data = heatmap_data.astype(int)
 
-            plt.figure(figsize=(10, 8))
-            sns.heatmap(
-                heatmap_data,
-                annot=True,
-                fmt="d",
-                cmap="Blues",  # Use a common color palette
-                cbar=False,
-                xticklabels=[],
-                yticklabels=[f"{i}:00" for i in range(24)],
-            )
-            plt.title("Number of Orders by Hour of Day")
-            plt.ylabel("Hour of Day")
-            plt.xlabel("Order Count")
+                plt.figure(figsize=(10, 8))
+                sns.heatmap(
+                    heatmap_data,
+                    annot=True,
+                    fmt="d",
+                    cmap="Blues",  # Use a common color palette
+                    cbar=False,
+                    xticklabels=[],
+                    yticklabels=[f"{i}:00" for i in range(24)],
+                )
+                plt.ylabel("Hour of Day")
+                plt.xlabel("Order Count")
             
 
 with ui.navset_card_underline():
