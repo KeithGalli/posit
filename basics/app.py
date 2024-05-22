@@ -65,8 +65,7 @@ def apply_common_styles(fig):
             "paper_bgcolor": "rgba(0,0,0,0)",  # Transparent figure background
             "font": {"family": "Arial, sans-serif", "size": 14, "color": "darkblue"},
             "colorway": px.colors.sequential.Blues, # Use a common color palette
-            "yaxis_title": "Quantity Ordered",
-            "xaxis_title": "Month"
+            "xaxis_title": None,
         }
     )
     return fig
@@ -202,6 +201,9 @@ with ui.layout_columns(widths=1 / 2):
                     marker_color=top_5_products["quantity_ordered"],
                     marker_colorscale="Blues",
                 )
+                fig.update_layout(
+                    yaxis_title="Quantity Ordered"  # Update the y-axis title
+                )
                 apply_common_styles(fig)
                 return fig
 
@@ -223,7 +225,7 @@ with ui.layout_columns(widths=1 / 2):
                     marker_color=top_5_products["value"], marker_colorscale="Blues"
                 )
                 fig.update_layout(
-                    yaxis_title="Quantity Ordered"  # Update the y-axis title
+                    yaxis_title="Value ($)"  # Update the y-axis title
                 )
                 apply_common_styles(fig)
                 return fig
@@ -246,6 +248,9 @@ with ui.layout_columns(widths=1 / 2):
                     marker_color=top_5_products["quantity_ordered"],
                     marker_colorscale="Reds",
                 )
+                fig.update_layout(
+                    yaxis_title="Quantity Ordered"  # Update the y-axis title
+                )
                 apply_common_styles(fig)
                 return fig
 
@@ -266,6 +271,9 @@ with ui.layout_columns(widths=1 / 2):
 
                 fig.update_traces(
                     marker_color=top_5_products["value"], marker_colorscale="Reds"
+                )
+                fig.update_layout(
+                    yaxis_title="Value ($)"  # Update the y-axis title
                 )
                 apply_common_styles(fig)
                 return fig
