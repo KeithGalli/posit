@@ -13,15 +13,18 @@ import seaborn as sns
 
 with ui.div(class_="header-container"):
     with ui.div(class_="logo-container"):
+
         @render.image
         def image():
             dir = Path(__file__).resolve().parent
             img = {"src": str(dir / "assets/shiny.png")}
             return img
+
     with ui.div(class_="title-container"):
         ui.h2("Sales Dashboard - Part 5 of 5")
 
-ui.tags.style("""
+ui.tags.style(
+    """
     h2 {
         background-color: #5DADE2;
         color: white;
@@ -55,7 +58,9 @@ ui.tags.style("""
     body {
         background-color: #5DADE2;
     }
-""")
+"""
+)
+
 
 def apply_common_styles(fig):
     # Set the background to transparent and set common font and colors
@@ -64,55 +69,53 @@ def apply_common_styles(fig):
             "plot_bgcolor": "rgba(0,0,0,0)",  # Transparent plot background
             "paper_bgcolor": "rgba(0,0,0,0)",  # Transparent figure background
             "font": {"family": "Arial, sans-serif", "size": 14, "color": "darkblue"},
-            "colorway": px.colors.sequential.Blues, # Use a common color palette
+            "colorway": px.colors.sequential.Blues,  # Use a common color palette
             "xaxis_title": None,
         }
     )
     return fig
+
 
 @reactive.calc
 def dat():
     infile = Path(__file__).parent / "data/sales.csv"
     return pd.read_csv(infile)
 
+
 # Set common font and color palette for Altair
-_ = alt.themes.enable('default')
+_ = alt.themes.enable("default")
 _ = alt.renderers.set_embed_options(scaleFactor=2)
-_ = alt.renderers.set_embed_options(theme='dark')
+_ = alt.renderers.set_embed_options(theme="dark")
 
 _ = alt.data_transformers.disable_max_rows()
-_ = alt.data_transformers.enable('default', max_rows=10000)
+_ = alt.data_transformers.enable("default", max_rows=10000)
 
 _ = alt.themes.register(
-    'custom_theme',
+    "custom_theme",
     lambda: {
-        'config': {
-            'title': {
-                'fontSize': 18,
-                'font': 'Arial',
-                'color': 'darkblue'
+        "config": {
+            "title": {"fontSize": 18, "font": "Arial", "color": "darkblue"},
+            "axis": {
+                "labelFontSize": 12,
+                "titleFontSize": 14,
+                "labelFont": "Arial",
+                "titleFont": "Arial",
+                "labelColor": "darkblue",
+                "titleColor": "darkblue",
+                "grid": False,  # Remove grid lines
+                "tickSize": 0,  # Remove tick lines
+                "titleFontWeight": "normal",  # Make axis titles non-bold
             },
-            'axis': {
-                'labelFontSize': 12,
-                'titleFontSize': 14,
-                'labelFont': 'Arial',
-                'titleFont': 'Arial',
-                'labelColor': 'darkblue',
-                'titleColor': 'darkblue',
-                'grid': False,       # Remove grid lines
-                'tickSize': 0,       # Remove tick lines
-                'titleFontWeight': 'normal',  # Make axis titles non-bold
+            "view": {
+                "strokeWidth": 0,  # Remove the light gray background
             },
-            'view': {
-                'strokeWidth': 0,    # Remove the light gray background
-            },
-            'background': '#FFFFFF',
-            'font': 'Arial'
+            "background": "#FFFFFF",
+            "font": "Arial",
         }
-    }
+    },
 )
 
-_ = alt.themes.enable('custom_theme')
+_ = alt.themes.enable("custom_theme")
 
 with ui.card(full_screen=True):
     ui.card_header(f"Sales by City in 2023")
@@ -169,7 +172,7 @@ with ui.card(full_screen=True):
             # Create the Altair chart
             chart = (
                 alt.Chart(city_counts)
-                .mark_bar(color='#3585BF')  # Apply a consistent color
+                .mark_bar(color="#3585BF")  # Apply a consistent color
                 .encode(
                     x=alt.X("month", title="Month"),
                     y=alt.Y("quantity_ordered", title="Quantity Ordered"),
@@ -181,10 +184,13 @@ with ui.card(full_screen=True):
 
 
 with ui.layout_columns(widths=1 / 2):
-    with ui.navset_card_underline(footer=ui.input_numeric("items", "Number of Items", 5, min=1, max=10, step=None, width=0.5)):
+    with ui.navset_card_underline(
+        footer=ui.input_numeric(
+            "items", "Number of Items", 5, min=1, max=10, step=None, width=0.5
+        )
+    ):
         with ui.nav_panel("Top Sellers"):
 
-             
             @render_plotly
             def top_sellers():
                 df = dat()
@@ -208,6 +214,7 @@ with ui.layout_columns(widths=1 / 2):
                 return fig
 
         with ui.nav_panel("Top Sellers Value ($)"):
+
             @render_plotly
             def top_sellers_value():
                 df = dat()
@@ -224,13 +231,12 @@ with ui.layout_columns(widths=1 / 2):
                 fig.update_traces(
                     marker_color=top_5_products["value"], marker_colorscale="Blues"
                 )
-                fig.update_layout(
-                    yaxis_title="Value ($)"  # Update the y-axis title
-                )
+                fig.update_layout(yaxis_title="Value ($)")  # Update the y-axis title
                 apply_common_styles(fig)
                 return fig
 
         with ui.nav_panel("Lowest Sellers"):
+
             @render_plotly
             def lowest_sellers():
                 df = dat()
@@ -255,6 +261,7 @@ with ui.layout_columns(widths=1 / 2):
                 return fig
 
         with ui.nav_panel("Lowest Sellers Value ($)"):
+
             @render_plotly
             def lowest_sellers_value():
                 df = dat()
@@ -272,15 +279,13 @@ with ui.layout_columns(widths=1 / 2):
                 fig.update_traces(
                     marker_color=top_5_products["value"], marker_colorscale="Reds"
                 )
-                fig.update_layout(
-                    yaxis_title="Value ($)"  # Update the y-axis title
-                )
+                fig.update_layout(yaxis_title="Value ($)")  # Update the y-axis title
                 apply_common_styles(fig)
                 return fig
-            
 
     with ui.navset_card_underline():
         with ui.nav_panel("Number of Orders by Hour of Day"):
+
             @render.plot
             def time_heatmap():
                 df = dat()
@@ -305,13 +310,18 @@ with ui.layout_columns(widths=1 / 2):
                     xticklabels=[],
                     yticklabels=[f"{i}:00" for i in range(24)],
                 )
-                plt.yticks(color='darkblue')
-                plt.ylabel("Hour of Day", fontname="Arial", color="darkblue", fontsize=12)
-                plt.xlabel("Order Count", fontname="Arial", color="darkblue", fontsize=12)
-            
+                plt.yticks(color="darkblue")
+                plt.ylabel(
+                    "Hour of Day", fontname="Arial", color="darkblue", fontsize=12
+                )
+                plt.xlabel(
+                    "Order Count", fontname="Arial", color="darkblue", fontsize=12
+                )
+
 
 with ui.navset_card_underline():
     with ui.nav_panel("Sales Locations"):
+
         @render.ui
         def heatmap():
             df = dat()
@@ -323,19 +333,21 @@ with ui.navset_card_underline():
             ]
 
             custom_gradient = {
-                0.0: '#E3F2FD',  # Light blue
-                0.2: '#BBDEFB',
-                0.4: '#64B5F6',
-                0.6: '#42A5F5',
-                0.8: '#2196F3',
-                1.0: '#1976D2'   # Dark blue
+                0.0: "#E3F2FD",  # Light blue
+                0.2: "#BBDEFB",
+                0.4: "#64B5F6",
+                0.6: "#42A5F5",
+                0.8: "#2196F3",
+                1.0: "#1976D2",  # Dark blue
             }
             HeatMap(heatmap_data, gradient=custom_gradient).add_to(map)
 
             return map
 
+
 with ui.navset_card_underline():
     with ui.nav_panel("Dataframe Sample"):
+
         @render.data_frame
         def frame():
             return dat().head(1000)
