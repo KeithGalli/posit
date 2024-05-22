@@ -127,7 +127,7 @@ with ui.card(full_screen=True):
 
         @render_altair
         def sales_over_time():
-            df = dat()
+            df = dat().copy()
             df["date"] = pd.to_datetime(df["order_date"])
             df["month"] = df["date"].dt.month_name()
             month_order = [
@@ -197,7 +197,7 @@ with ui.layout_columns(widths=1 / 2):
 
             @render_plotly
             def top_sellers_value():
-                df = dat()
+                df = dat().copy()
                 df["value"] = df["quantity_ordered"] * df["price_each"]
                 top_5_products = (
                     df.groupby("product")["value"]
@@ -238,7 +238,7 @@ with ui.layout_columns(widths=1 / 2):
 
             @render_plotly
             def lowest_sellers_value():
-                df = dat()
+                df = dat().copy()
                 df["value"] = df["quantity_ordered"] * df["price_each"]
                 top_5_products = (
                     df.groupby("product")["value"]
@@ -260,7 +260,7 @@ with ui.layout_columns(widths=1 / 2):
 
             @render.plot
             def time_heatmap():
-                df = dat()
+                df = dat().copy()
                 df["order_date"] = pd.to_datetime(df["order_date"])
                 df["hour"] = df["order_date"].dt.hour
                 hourly_counts = df["hour"].value_counts().sort_index()
